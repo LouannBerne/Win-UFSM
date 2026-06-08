@@ -20,13 +20,13 @@ Application Windows Forms pour analyser l’espace disque occupé par les dossie
 Depuis la racine du dépôt :
 
 ```bash
-dotnet run --project /tmp/workspace/LouannBerne/storageApp/stage-appStorage/stage-appStorage.csproj
+dotnet run --project stage-appStorage/stage-appStorage.csproj
 ```
 
 ## Build
 
 ```bash
-dotnet build /tmp/workspace/LouannBerne/storageApp/stage-appStorage/stage-appStorage.csproj
+dotnet build stage-appStorage/stage-appStorage.csproj
 ```
 
 ## Attention
