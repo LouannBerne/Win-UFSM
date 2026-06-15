@@ -1,4 +1,4 @@
-# stage-appStorage
+# Win-USFM (User Storage File Manager)
 
 Application Windows Forms pour analyser l’espace disque occupé par les dossiers utilisateurs de `C:\Users`.
 
