@@ -119,27 +119,65 @@ namespace stage_appStorage
                 return;
             }
 
-            var result = MessageBox.Show($"Êtes-vous sûr de vouloir supprimer {selectedItems.Count} dossier(s) ? Attention, cette action est définitive et peut supprimer des données importantes.", "Confirmation de suppression", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            
+            var result = MessageBox.Show($"Êtes-vous sûr de vouloir supprimer {selectedItems.Count} dossier(s) ainsi que les clés de registre associées ? Attention, cette action est définitive.", "Confirmation de suppression", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
             if (result == DialogResult.Yes)
             {
                 foreach (ListViewItem item in selectedItems)
                 {
                     var tagData = item.Tag as Tuple<string, long>;
-                    if(tagData == null) continue;
+                    if (tagData == null) continue;
 
                     string path = tagData.Item1;
+                    string userName = Path.GetFileName(path);
                     try
                     {
                         Directory.Delete(path, true);
+                        DeleteUserRegistryProfile(path);
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Erreur lors de la suppression de {path}: {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-                
+
                 _ = LoadUsersAsync();
+            }
+        }
+
+        private void DeleteUserRegistryProfile(string profilePath)
+        {
+            try
+            {
+                string profileListPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList";
+                using (var localMachine = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64))
+                {
+                    using (var profileListKey = localMachine.OpenSubKey(profileListPath, true))
+                    {
+                        if (profileListKey != null)
+                        {
+                            foreach (string subKeyName in profileListKey.GetSubKeyNames())
+                            {
+                                using (var subKey = profileListKey.OpenSubKey(subKeyName))
+                                {
+                                    if (subKey != null)
+                                    {
+                                        var pathValue = subKey.GetValue("ProfileImagePath") as string;
+                                        if (pathValue != null && pathValue.Equals(profilePath, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            profileListKey.DeleteSubKeyTree(subKeyName);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la suppression de la clé de registre pour le profil {profilePath}: {ex.Message}", "Erreur Registre", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
