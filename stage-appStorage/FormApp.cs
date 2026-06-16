@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -129,11 +130,15 @@ namespace stage_appStorage
                     if (tagData == null) continue;
 
                     string path = tagData.Item1;
-                    string userName = Path.GetFileName(path);
                     try
                     {
-                        Directory.Delete(path, true);
-                        DeleteUserRegistryProfile(path);
+                        if (!DeleteProfileViaWMI(path))
+                        {
+                            // Fallback if WMI fails or does not find the profile
+                            RemoveReadonlyAttributes(path);
+                            Directory.Delete(path, true);
+                            DeleteUserRegistryProfile(path);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -142,6 +147,54 @@ namespace stage_appStorage
                 }
 
                 _ = LoadUsersAsync();
+            }
+        }
+
+        private bool DeleteProfileViaWMI(string profilePath)
+        {
+            try
+            {
+                var query = new SelectQuery("Win32_UserProfile", $"LocalPath='{profilePath.Replace("\\", "\\\\")}'");
+                using (var searcher = new ManagementObjectSearcher(query))
+                {
+                    foreach (ManagementObject profile in searcher.Get())
+                    {
+                        profile.Delete();
+                        return true; // The profile folder and registry key were successfully deleted via WMI
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Silent catch, let fallback handle it
+            }
+            return false;
+        }
+
+        private void RemoveReadonlyAttributes(string directoryPath)
+        {
+            try
+            {
+                if (!Directory.Exists(directoryPath)) return;
+
+                var dirInfo = new DirectoryInfo(directoryPath);
+
+                // Normaliser les attributs de tous les fichiers
+                foreach (var file in dirInfo.EnumerateFiles("*", SearchOption.AllDirectories))
+                {
+                    file.Attributes = FileAttributes.Normal;
+                }
+
+                // Normaliser les attributs des sous-dossiers
+                foreach (var dir in dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+                {
+                    dir.Attributes = FileAttributes.Normal;
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore errors related to access denied during attribute reset, 
+                // the subsequent Directory.Delete might still throw.
             }
         }
 
