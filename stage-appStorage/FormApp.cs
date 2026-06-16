@@ -5,7 +5,7 @@ using System.Management;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace stage_appStorage
+namespace Win_UFSM
 {
     public partial class FormApp : Form
     {

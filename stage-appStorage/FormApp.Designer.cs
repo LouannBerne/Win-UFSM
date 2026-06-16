@@ -1,4 +1,4 @@
-﻿namespace stage_appStorage
+﻿namespace Win_UFSM
 {
     partial class FormApp
     {
