@@ -1,6 +1,6 @@
 # Win-USFM (User Storage File Manager)
 
-[![Version](https://img.shields.io/badge/version-v1.5.0-blue.svg)](https://github.com/louannberne)
+[![Version](https://img.shields.io/badge/version-v1.6.0-blue.svg)](https://github.com/louannberne)
 [![Target](https://img.shields.io/badge/.NET-10.0--windows-purple.svg)](https://dotnet.microsoft.com/fr/download/dotnet/10.0)
 
 Application Windows Forms (.NET 10) conçue pour analyser l'espace disque occupé par les dossiers utilisateurs de `C:\Users` et permettre un nettoyage propre, complet et sécurisé de l'environnement.
